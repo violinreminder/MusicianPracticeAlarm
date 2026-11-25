@@ -141,7 +141,26 @@ object Nag {
             )
             b.addAction(0, "Dismiss test", dismiss)
         }
-        ctx.getSystemService(NotificationManager::class.java).notify(ID, b.build())
+        val n = b.build()
+        if (Store.loudAlarm(ctx)) n.flags = n.flags or Notification.FLAG_INSISTENT
+        ctx.getSystemService(NotificationManager::class.java).notify(ID, n)
+        if (Store.loudAlarm(ctx)) wakeScreen(ctx)
+    }
+
+    /** Turns the screen on for a few seconds so the reminder is seen on the lock screen. */
+    @Suppress("DEPRECATION")
+    private fun wakeScreen(ctx: Context) {
+        try {
+            val pm = ctx.getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+            val wl = pm.newWakeLock(
+                android.os.PowerManager.SCREEN_BRIGHT_WAKE_LOCK or
+                    android.os.PowerManager.ACQUIRE_CAUSES_WAKEUP or
+                    android.os.PowerManager.ON_AFTER_RELEASE,
+                "MusicianPracticeAlarm:wake"
+            )
+            wl.acquire(8000L)
+        } catch (e: Exception) {
+        }
     }
 
     fun cancel(c: Context) {
