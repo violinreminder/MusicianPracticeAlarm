@@ -9,13 +9,13 @@ An Android app that reminds you to practice your instrument, and gets more annoy
 ## Install it
 
 1. On your Android phone, open the **Releases** page of this repository and tap the newest release.
-2. Tap **ViolinNagger.apk** to download it.
+2. Tap **MusicianPracticeAlarm.apk** to download it.
 3. Open the downloaded file. If Android asks, allow your browser to "install unknown apps", then go back and tap Install.
 4. Open Musician Practice Alarm and answer the two setup questions. Allow notifications and the microphone when asked.
 
 ## Update it
 
-Download and open the newest ViolinNagger.apk. It installs over the old one and keeps your history.
+Download and open the newest MusicianPracticeAlarm.apk. It installs over the old one and keeps your history.
 
 ## If reminders don't show up
 
