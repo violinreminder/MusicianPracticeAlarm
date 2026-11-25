@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Musician Practice Alarm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1a110c">
+<link rel="icon" href="icon.png">
+<style>
+/* Layout: one narrow column. Download first, then how it works. Single dark theme on purpose (varnish and brass). */
+:root{--bg:#1a110c;--card:#26190f;--line:#3d2a1b;--text:#f4e8d6;--muted:#b39b82;--brass:#e3a03c;--ink:#2a1700;
+  --display:Georgia,"Times New Roman",serif;--body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:17px;line-height:1.5}
+main{max-width:520px;margin:0 auto;padding:32px 18px 48px;display:flex;flex-direction:column;gap:18px}
+img.logo{width:84px;height:84px;border-radius:20px}
+h1{font-family:var(--display);font-size:36px;line-height:1.1;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-size:21px;margin:0 0 8px}
+p{margin:0}
+.lead{color:var(--muted);font-size:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+a.btn{display:block;text-align:center;text-decoration:none;font-weight:700;border-radius:12px;padding:16px;background:var(--brass);color:var(--ink);font-size:18px}
+a.btn:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+ol{margin:0;padding-left:22px}
+li{margin:8px 0}
+.muted{color:var(--muted);font-size:15px}
+</style>
+</head>
+<body>
+<main>
+  <img class="logo" src="icon.png" alt="">
+  <h1>Musician Practice Alarm</h1>
+  <p class="lead">An Android app that reminds you to practice your instrument, and gets more annoying until you open the case.</p>
+
+  <section class="card">
+    <h2>Install on Android</h2>
+    <a class="btn" id="dl" href="#">Download the app</a>
+    <ol style="margin-top:14px">
+      <li>Tap Download, then open the file when it finishes.</li>
+      <li>If Android asks, allow your browser to install unknown apps, then tap Install.</li>
+      <li>Open Musician Practice Alarm, answer the two questions, and allow notifications and the microphone.</li>
+    </ol>
+    <p class="muted" style="margin-top:12px">Android may warn that the app comes from outside the Play Store. That is expected for this app. It is not available for iPhone.</p>
+  </section>
+
+  <section class="card">
+    <h2>How it works</h2>
+    <p>You pick a practice time. Reminders start then and come faster each time, even with your phone locked. At first you can tap "I played" on your honor. If you skip too many days, that button disappears and the microphone has to hear you play for 5 minutes.</p>
+  </section>
+</main>
+<script>
+(function(){
+  var dl=document.getElementById("dl");
+  var host=location.hostname, parts=location.pathname.split("/").filter(Boolean);
+  if(/\.github\.io$/.test(host) && parts.length){
+    dl.href="https://github.com/"+host.split(".")[0]+"/"+parts[0]+"/releases/latest/download/ViolinNagger.apk";
+  } else {
+    dl.textContent="Download link unavailable here";
+  }
+})();
+</script>
+</body>
+</html>
