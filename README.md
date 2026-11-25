@@ -11,7 +11,7 @@ An Android app that reminds you to practice your instrument, and gets more annoy
 1. On your Android phone, open the **Releases** page of this repository and tap the newest release.
 2. Tap **MusicianPracticeAlarm.apk** to download it.
 3. Open the downloaded file. If Android asks, allow your browser to "install unknown apps", then go back and tap Install.
-4. Open Musician Practice Alarm and answer the two setup questions. Allow notifications and the microphone when asked.
+4. Open Musician Practice Alarm and answer the three setup questions. Allow notifications and the microphone when asked.
 
 ## Update it
 
