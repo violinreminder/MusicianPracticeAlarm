@@ -23,15 +23,19 @@ object Store {
     fun installed(c: Context): String =
         sp(c).getString("installed", null) ?: LocalDate.now().toString()
 
+    fun loudAlarm(c: Context): Boolean = sp(c).getBoolean("loud", true)
+    fun setLoudAlarm(c: Context, v: Boolean) = sp(c).edit().putBoolean("loud", v).apply()
+
     fun setPracticeMinutes(c: Context, v: Int) = sp(c).edit().putInt("pm", v).apply()
     fun setTrustDays(c: Context, v: Int) = sp(c).edit().putInt("trust", v).apply()
     fun setNeedMinutes(c: Context, v: Int) = sp(c).edit().putInt("need", maxOf(5, v)).apply()
 
-    fun finishSetup(c: Context, pm: Int, trust: Int) {
+    fun finishSetup(c: Context, pm: Int, trust: Int, loud: Boolean = true) {
         sp(c).edit()
             .putBoolean("setup", true)
             .putInt("pm", pm)
             .putInt("trust", trust)
+            .putBoolean("loud", loud)
             .putString("installed", LocalDate.now().toString())
             .apply()
     }
