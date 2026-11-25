@@ -82,6 +82,8 @@ class MainActivity : Activity() {
     private lateinit var timeBtn: Button
     private lateinit var needSpinner: Spinner
     private lateinit var trustSpinner: Spinner
+    private lateinit var loudBtn: Button
+    private var setupLoud = true
     private lateinit var eraseBtn: Button
 
     private val needOptions = intArrayOf(5, 10, 15, 20, 30, 45, 60)
@@ -348,7 +350,7 @@ class MainActivity : Activity() {
     private fun buildSetup() {
         setupPanel = vbox()
         add(setupPanel, tv("Set up your alarm", 28f, TEXT, true, true))
-        add(setupPanel, tv("Two questions. You can change both later.", 15f, MUTED), 6)
+        add(setupPanel, tv("Three questions. You can change all of them later.", 15f, MUTED), 6)
         add(setupPanel, tv("What time do you want to practice?", 17f), 28)
         setupTimeBtn = btn("", false) {
             pickTime(setupPm) { pm ->
@@ -365,6 +367,22 @@ class MainActivity : Activity() {
             tv("Until then you can tap \"I played\". After that, the microphone has to hear you play.", 14f, MUTED),
             16
         )
+        add(setupPanel, tv("Should reminders ring like an alarm?", 17f), 28)
+        val setupLoudBtn = btn(loudLabel(true), false) {}
+        setupLoudBtn.setOnClickListener {
+            setupLoud = !setupLoud
+            setupLoudBtn.text = loudLabel(setupLoud)
+        }
+        add(setupPanel, setupLoudBtn, 8)
+        add(
+            setupPanel,
+            tv(
+                "ON: rings like a phone alarm and keeps going until you respond to the reminder.\n\n" +
+                    "OFF: one sound per reminder, then it waits quietly in your notifications. Easier to ignore, so pick this only if the ringing would be a problem.",
+                14f, MUTED
+            ),
+            12
+        )
         add(setupPanel, btn("Start my alarm", true) { finishSetup() }, 24)
         updateSetupTime()
         root.addView(setupPanel, LinearLayout.LayoutParams(MATCH, WRAP))
@@ -376,7 +394,7 @@ class MainActivity : Activity() {
 
     private fun finishSetup() {
         val trust = intArrayOf(1, 2, 3, 5)[setupTrust.selectedItemPosition]
-        Store.finishSetup(this, setupPm, trust)
+        Store.finishSetup(this, setupPm, trust, setupLoud)
         val perms = ArrayList<String>()
         if (Build.VERSION.SDK_INT >= 33 &&
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -484,6 +502,12 @@ class MainActivity : Activity() {
         add(settings, tv("Require sound after this many days without playing", 14f, MUTED), 12)
         trustSpinner = spinner(trustOptions.map { if (it == 1) "1 day" else "$it days" }, 2)
         add(settings, trustSpinner, 4)
+        add(settings, tv("Alarm sound", 14f, MUTED), 12)
+        loudBtn = btn(loudLabel(Store.loudAlarm(this)), false) {
+            Store.setLoudAlarm(this, !Store.loudAlarm(this))
+            loudBtn.text = loudLabel(Store.loudAlarm(this))
+        }
+        add(settings, loudBtn, 4)
         add(settings, tv("History", 14f, MUTED), 18)
         eraseBtn = btn("Erase my history", false) { eraseClicked() }
         add(settings, eraseBtn, 10)
@@ -519,7 +543,10 @@ class MainActivity : Activity() {
         if (ni >= 0 && needSpinner.selectedItemPosition != ni) needSpinner.setSelection(ni)
         val ti = trustOptions.indexOf(Store.trustDays(this))
         if (ti >= 0 && trustSpinner.selectedItemPosition != ti) trustSpinner.setSelection(ti)
+        loudBtn.text = loudLabel(Store.loudAlarm(this))
     }
+
+    private fun loudLabel(on: Boolean) = if (on) "Ring like an alarm: ON" else "Ring like an alarm: OFF"
 
     private fun eraseClicked() {
         val now = System.currentTimeMillis()
