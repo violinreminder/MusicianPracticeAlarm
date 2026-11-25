@@ -73,6 +73,7 @@ object Scheduler {
 
 object Nag {
     const val CHANNEL = "nag_v1"
+    const val CHANNEL_LOUD = "nag_v2"
     const val ID = 1
     const val ACTION_SNOOZE = "com.violinnagger.app.SNOOZE"
     const val ACTION_HONOR = "com.violinnagger.app.HONOR"
@@ -81,24 +82,34 @@ object Nag {
 
     private fun ensureChannel(c: Context) {
         val nm = c.getSystemService(NotificationManager::class.java)
-        if (nm.getNotificationChannel(CHANNEL) != null) return
-        val ch = NotificationChannel(CHANNEL, "Practice nags", NotificationManager.IMPORTANCE_HIGH)
-        ch.description = "The reminders to practice your instrument"
-        ch.enableVibration(true)
-        ch.vibrationPattern = longArrayOf(0, 300, 150, 300, 150, 300)
-        val attrs = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ALARM)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
-        ch.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM), attrs)
-        ch.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-        nm.createNotificationChannel(ch)
+        if (nm.getNotificationChannel(CHANNEL) == null) {
+            val ch = NotificationChannel(CHANNEL, "Practice nags", NotificationManager.IMPORTANCE_HIGH)
+            ch.description = "The reminders to practice your instrument"
+            ch.enableVibration(true)
+            ch.vibrationPattern = longArrayOf(0, 300, 150, 300, 150, 300)
+            val attrs = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
+            ch.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM), attrs)
+            ch.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            nm.createNotificationChannel(ch)
+        }
+        if (nm.getNotificationChannel(CHANNEL_LOUD) == null) {
+            // Silent channel: the alarm sound is played by AlarmSoundService on the alarm volume instead.
+            val ch = NotificationChannel(CHANNEL_LOUD, "Practice alarm", NotificationManager.IMPORTANCE_HIGH)
+            ch.description = "Rings like an alarm clock until you respond"
+            ch.enableVibration(true)
+            ch.vibrationPattern = longArrayOf(0, 300, 150, 300, 150, 300)
+            ch.setSound(null, null)
+            ch.setBypassDnd(true)
+            ch.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            nm.createNotificationChannel(ch)
+        }
     }
 
     @Suppress("DEPRECATION")
-    fun post(c: Context, test: Boolean = false) {
-        val ctx = c.applicationContext
-        ensureChannel(ctx)
+    fun build(ctx: Context, test: Boolean, channel: String): Notification {
         val lvl = if (test) 1 else Practice.level(ctx)
         val locked = Practice.locked(ctx)
         val msg = Practice.message(ctx, lvl)
@@ -114,7 +125,7 @@ object Nag {
                 .putExtra("nag", true),
             FLAGS
         )
-        val b = Notification.Builder(ctx, Nag.CHANNEL)
+        val b = Notification.Builder(ctx, channel)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentTitle((if (locked) "Trust revoked · " else "") + "Practice reminder " + lvl)
             .setContentText(msg)
@@ -125,6 +136,9 @@ object Nag {
             .setAutoCancel(false)
             .setOngoing(true)
             .setOnlyAlertOnce(false)
+        if (android.os.Build.VERSION.SDK_INT >= 31) {
+            b.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
+        }
         if (!locked) {
             val snooze = PendingIntent.getBroadcast(
                 ctx, 2, Intent(ctx, ActionReceiver::class.java).setAction(ACTION_SNOOZE), FLAGS
@@ -141,10 +155,25 @@ object Nag {
             )
             b.addAction(0, "Dismiss test", dismiss)
         }
-        val n = b.build()
-        if (Store.loudAlarm(ctx)) n.flags = n.flags or Notification.FLAG_INSISTENT
+        return b.build()
+    }
+
+    fun post(c: Context, test: Boolean = false) {
+        val ctx = c.applicationContext
+        ensureChannel(ctx)
+        val loud = Store.loudAlarm(ctx)
+        if (loud) {
+            wakeScreen(ctx)
+            try {
+                ctx.startForegroundService(Intent(ctx, AlarmSoundService::class.java).putExtra("test", test))
+                return
+            } catch (e: Exception) {
+                // Could not start the alarm sound: fall through to a normal notification.
+            }
+        }
+        val n = build(ctx, test, CHANNEL)
+        if (loud) n.flags = n.flags or Notification.FLAG_INSISTENT
         ctx.getSystemService(NotificationManager::class.java).notify(ID, n)
-        if (Store.loudAlarm(ctx)) wakeScreen(ctx)
     }
 
     /** Turns the screen on for a few seconds so the reminder is seen on the lock screen. */
@@ -163,7 +192,13 @@ object Nag {
         }
     }
 
+    /** Stops the ringing but leaves the reminder in the notification shade. */
+    fun silence() {
+        AlarmSoundService.instance?.stopAll(false)
+    }
+
     fun cancel(c: Context) {
+        AlarmSoundService.instance?.stopAll(true)
         c.getSystemService(NotificationManager::class.java).cancel(ID)
     }
 }

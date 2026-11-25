@@ -288,6 +288,14 @@ class MainActivity : Activity() {
         showPanels()
     }
 
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        try {
+            Nag.silence()
+        } catch (e: Exception) {
+        }
+    }
+
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         setIntent(intent)
