@@ -347,7 +347,7 @@ class MainActivity : Activity() {
 
     private fun buildSetup() {
         setupPanel = vbox()
-        add(setupPanel, tv("Set up your nagger", 28f, TEXT, true, true))
+        add(setupPanel, tv("Set up your alarm", 28f, TEXT, true, true))
         add(setupPanel, tv("Two questions. You can change both later.", 15f, MUTED), 6)
         add(setupPanel, tv("What time do you want to practice?", 17f), 28)
         setupTimeBtn = btn("", false) {
@@ -365,7 +365,7 @@ class MainActivity : Activity() {
             tv("Until then you can tap \"I played\". After that, the microphone has to hear you play.", 14f, MUTED),
             16
         )
-        add(setupPanel, btn("Start nagging me", true) { finishSetup() }, 24)
+        add(setupPanel, btn("Start my alarm", true) { finishSetup() }, 24)
         updateSetupTime()
         root.addView(setupPanel, LinearLayout.LayoutParams(MATCH, WRAP))
     }
@@ -566,7 +566,7 @@ class MainActivity : Activity() {
         val need = Store.needMinutes(this)
         if (done && justDone) {
             headlineTv.text = "Nice. $need minutes done."
-            sublineTv.text = "Nagging is off until tomorrow. Trust restored."
+            sublineTv.text = "Reminders are off until tomorrow. Trust restored."
         } else if (done) {
             headlineTv.text = "You played today."
             sublineTv.text = if (Store.log(this)[Practice.today().toString()] == "mic") {
